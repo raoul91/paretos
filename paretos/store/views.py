@@ -1,3 +1,6 @@
 from django.shortcuts import render
+from .models import *
 
-# Create your views here.
+
+def say_hello(request):
+    return render(request, "home.html", context={})
