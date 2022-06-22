@@ -1,0 +1,11 @@
+{% extends 'base.html' %} {% load static %}
+
+{% block content %}
+<h1>Success...</h1>
+<h2>Welcome, {{username}}</h2>
+{% if text %}
+{{text}}
+{% endif %}
+<a href="{% url 'logout' %}">Logout</a>
+<a href="{% url 'test' %}">Test</a>
+{% endblock %}

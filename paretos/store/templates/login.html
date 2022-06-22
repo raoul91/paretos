@@ -1,0 +1,16 @@
+{% extends 'base.html' %} {% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% if text %}
+{{text}}
+{% endif %}
+<h2>Login</h2>
+{% include 'form_template.html' %}
+Forgot Password?
+<a href="{% url 'request_reset_password' %}">Reset</a>
+<br>
+No Account yet?
+<a href="{% url 'register_user' %}">Create Account</a>
+{% endblock %}

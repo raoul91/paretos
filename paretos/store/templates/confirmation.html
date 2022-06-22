@@ -1,0 +1,12 @@
+{% extends 'base.html' %} {% load static %}
+
+{% block title %}Email confirmation{% endblock %}
+
+{% block content %}
+<h2>Email Confirmation</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Confirmation</button>
+</form>
+{% endblock %}

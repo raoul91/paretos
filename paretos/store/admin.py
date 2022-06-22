@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import ParetosUser
 
-# Register your models here.
+
+@admin.register(ParetosUser)
+class ParetosUserAdmin(admin.ModelAdmin):
+    pass
