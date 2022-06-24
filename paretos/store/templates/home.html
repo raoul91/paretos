@@ -2,12 +2,13 @@
 
 {% block content %}
 {% if username %}
-Hello there, {{username}}
+Hallo, {{username}}. Schön, dass du das bist.
 <a href="{% url 'logout_user' %}">Logout</a>
 <a href="{% url 'test' %}">Test</a>
 {% else %}
-<h1>Hello there</h1>
-<a href="{% url 'login_user' %}">Login</a>
-<a href="{% url 'register_user' %}">Register</a>
+<h1>Willkommen bei paretos.ch</h1>
+<a href="{% url 'login_user' %}">Anmelden</a>
+<br>
+<a href="{% url 'register_user' %}">Registrieren</a>
 {% endif %}
 {% endblock %}

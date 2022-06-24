@@ -3,10 +3,12 @@
 {% block content %}
 <h1>Test...</h1>
 {% if username %}
-<h2>You are logged in, {{username}}</h2>
-<a href="{% url 'logout_user' %}">Logout</a>
+<h2>Du bist angemeldet, {{username}}.</h2>
+<a href="{% url 'logout_user' %}">Abmelden</a>
 {% else %}
-<h2>You are not logged in</h2>
-<a href="{% url 'login_user' %}">Login</a>
+<h2>Du bist nicht angemeldet.</h2>
+<a href="{% url 'login_user' %}">Anmelden</a>
+<br>
+<a href="{% url 'home' %}">Zurück zu home.</a>
 {% endif %}
 {% endblock %}

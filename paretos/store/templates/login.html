@@ -1,16 +1,16 @@
 {% extends 'base.html' %} {% load static %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Anmelden{% endblock %}
 
 {% block content %}
 {% if text %}
 {{text}}
 {% endif %}
-<h2>Login</h2>
+<h2>Anmelden</h2>
 {% include 'form_template.html' %}
-Forgot Password?
-<a href="{% url 'request_reset_password' %}">Reset</a>
+Passwort (schon wieder) vergessen? Kein Problem.
+<a href="{% url 'request_reset_password' %}">Passwort ändern.</a>
 <br>
-No Account yet?
-<a href="{% url 'register_user' %}">Create Account</a>
+Noch kein Mitglied bei paretos.ch?
+<a href="{% url 'register_user' %}">Account erstellen.</a>
 {% endblock %}

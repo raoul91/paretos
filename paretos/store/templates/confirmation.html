@@ -3,10 +3,10 @@
 {% block title %}Email confirmation{% endblock %}
 
 {% block content %}
-<h2>Email Confirmation</h2>
+<h2>Bestätige deine E-Mail Adresse</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Confirmation</button>
+    <button type="submit">Bestätige</button>
 </form>
 {% endblock %}

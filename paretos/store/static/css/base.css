@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500&display=swap');
+
+
+body {
+    background: #FFFAF0;
+    font-family: 'Roboto Slab', serif;
+}
+
+.paretos-content {
+    padding: 15px;
+}
