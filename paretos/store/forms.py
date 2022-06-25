@@ -68,7 +68,7 @@ class LoginForm(forms.Form):
             self._errors["name"] = "Benutzername existiert nicht"
 
 
-class ConfirmationForm(forms.Form):
+class EmailActivationForm(forms.Form):
     widget = forms.TextInput(attrs={'class': 'form-control'})
 
     username = forms.CharField(
@@ -76,17 +76,26 @@ class ConfirmationForm(forms.Form):
     password = forms.CharField(
         widget=PASSWORD_WIDGET, required=True, label="Passwort")
     token = forms.CharField(
-        widget=WIDGET, required=True, label="Bestätigungscode")
+        widget=WIDGET, required=True, label="Aktivierungscode")
 
     def clean(self):
-        super(ConfirmationForm, self).clean()
+        super(EmailActivationForm, self).clean()
         username = self.cleaned_data["username"]
         password = self.cleaned_data["password"]
         token = self.cleaned_data["token"]
+
+        # TODO: use authenticate method at this point
+        u = authenticate(username=username, password=password)
+        if u is not None:
+            print("AUTHENTICATED")
+        else:
+            print("NOT AUTH")
+
         try:
             user = ParetosUser.objects.get(username=username)
             if not(user.check_password(password)):
                 self._errors["password"] = "Falsches Passwort"
+
             if str(token) != str(user.email_confirmation_token):
                 self._errors["token"] = "Falscher Bestätigungscode."
         except:

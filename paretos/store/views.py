@@ -1,14 +1,7 @@
-from doctest import ELLIPSIS_MARKER
-import email
-import os
-from email import message
-import re
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
 from .models import ParetosUser
-
-from .forms import LoginForm, RegisterForm, ConfirmationForm, RequestResetPasswordForm, ResetPasswordForm
+from .forms import *
 
 
 def home(request):
@@ -53,8 +46,7 @@ def register_user(request):
     if request.method != 'POST':
         form = RegisterForm()
         return render(request, 'register.html', context={"form": form})
-
-    if request.method == 'POST':
+    else:
         form = RegisterForm(request.POST)
         if not(form.is_valid()):
             return render(request, 'register.html', context={"form": form})
@@ -62,12 +54,15 @@ def register_user(request):
         # TODO: isolate this part here...
         username = form.cleaned_data["username"]
         email = form.cleaned_data["email"]
+        password = form.cleaned_data["password"]
         user = ParetosUser(
             username=username,
             email=email,
-            password=form.cleaned_data["password"],
+            password=password,
             email_confirmation_token=1234,
         )
+        # TODO: need to check how to do this properly
+        user.set_password(password)
         user.save()
         user.send_confirmation_email(request)
         login(request, user)
@@ -75,33 +70,27 @@ def register_user(request):
         return render(request, 'success.html', context=context)
 
 
-def confirmation(request):
+def email_activation(request):
     # TODO: need to do generate token or something like that
-    if request.method == 'POST':
-        form = ConfirmationForm(request.POST)
+    if request.method != "POST":
+        form = EmailActivationForm()
+        return render(request, 'confirmation.html', context={"form": form})
+    else:
+        form = EmailActivationForm(request.POST)
         if not(form.is_valid()):
-            print("FORM IS NOT VALID")
-            context = {"form": form}
-            return render(request, "confirmation.html", context=context)
+            return render(request, "confirmation.html", context={"form": form})
 
         if form.is_valid():
+            # TODO: put this in the form itself
             username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-            token = form.cleaned_data["token"]
-
             try:
                 user = ParetosUser.objects.get(username=username)
-                user.set_email_confimation_flag()
+                user.set_email_confirmation_flag()
                 login(request, user)
-                print("GEIL")
                 return render(request, "success.html", context={})
             except:
                 user = None
                 return render(request, "no_success.html")
-
-    else:
-        form = ConfirmationForm()
-        return render(request, 'confirmation.html', context={"form": form})
 
 
 def logout_user(request):

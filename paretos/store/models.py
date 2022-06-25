@@ -23,7 +23,7 @@ class ParetosUser(User):
 
     def send_confirmation_email(self, request):
         message = "Hallo {0}\n\n".format(self.username)
-        confirmation_url = request.build_absolute_uri("confimation")
+        confirmation_url = request.build_absolute_uri("confirmation")
         message += "Aktiviere deine E-Mail hier: {0}\n".format(
             confirmation_url)
         message += "Dein Aktivierungscode: {0}".format(
@@ -49,6 +49,6 @@ class ParetosUser(User):
             from_email=EMAIL_HOST_USER,
         )
 
-    def set_email_confimation_flag(self):
+    def set_email_confirmation_flag(self):
         self.email_confirmed = True
         self.save()
