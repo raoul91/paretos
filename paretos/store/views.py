@@ -1,8 +1,8 @@
-from multiprocessing import context
+from doctest import ELLIPSIS_MARKER
+import email
 import os
 from email import message
 import re
-from urllib import request
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -13,9 +13,9 @@ from .forms import LoginForm, RegisterForm, ConfirmationForm, RequestResetPasswo
 
 def home(request):
     username = request.user.get_username()
-    print("USERNAME")
-    print(username)
-    return render(request, "home.html", context={"username": username})
+    members_number = len(ParetosUser.objects.all())
+    context = {"username": username, "members_number": members_number}
+    return render(request, "home.html", context=context)
 
 
 def login_user(request):
@@ -32,9 +32,7 @@ def login_user(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                name = user.get_username()
-                print("NAME: {name}".format(name=name))
-                return render(request, 'success.html', context={"username": name})
+                return render(request, 'success.html', context={"username": user.get_username()})
             else:
                 return render(request, 'no_success.html', context={})
         else:
@@ -48,76 +46,58 @@ def login_user(request):
 
 def register_user(request):
     if request.session.get('register_text'):
-        # TODO: improve here, pop key, value pair
-        text = request.session['register_text']
-        request.session['register_text'] = None
+        text = request.session.pop('register_text')
         form = RegisterForm()
         return render(request, 'register.html', context={"form": form, "text": text})
 
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data["name"]
-            password = form.cleaned_data["password"]
-            email = form.cleaned_data["email"]
-
-            # check if user exists
-            # TODO: beautify
-            try:
-                user = ParetosUser.objects.get(username=username)
-            except:
-                user = None
-            if user is None:
-                print("USER DOES NOT EXIST YET")
-                # mail authentication
-                user = ParetosUser(
-                    username=username,
-                    email=email,
-                    password=password,
-                    email_confirmation_token=1234,
-                )
-                user.save()
-                user.send_confirmation_email(request)
-                return render(request, 'success.html', context={"username": username})
-
-            if user is not None:
-                request.session['text'] = "You are already registered. Login instead"
-                return redirect("login_user")
-
-    else:
+    if request.method != 'POST':
         form = RegisterForm()
         return render(request, 'register.html', context={"form": form})
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if not(form.is_valid()):
+            return render(request, 'register.html', context={"form": form})
+
+        # TODO: isolate this part here...
+        username = form.cleaned_data["username"]
+        email = form.cleaned_data["email"]
+        user = ParetosUser(
+            username=username,
+            email=email,
+            password=form.cleaned_data["password"],
+            email_confirmation_token=1234,
+        )
+        user.save()
+        user.send_confirmation_email(request)
+        login(request, user)
+        context = {"username": username, "email": email}
+        return render(request, 'success.html', context=context)
 
 
 def confirmation(request):
     # TODO: need to do generate token or something like that
     if request.method == 'POST':
         form = ConfirmationForm(request.POST)
+        if not(form.is_valid()):
+            print("FORM IS NOT VALID")
+            context = {"form": form}
+            return render(request, "confirmation.html", context=context)
+
         if form.is_valid():
-            username = form.cleaned_data["name"]
+            username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
-            confirmation_token = form.cleaned_data["confirmation_token"]
+            token = form.cleaned_data["token"]
+
             try:
                 user = ParetosUser.objects.get(username=username)
+                user.set_email_confimation_flag()
+                login(request, user)
+                print("GEIL")
+                return render(request, "success.html", context={})
             except:
                 user = None
-            # TODO: check authentication
-            # TODO: change here...
-            if user is not None:
-                # set email confimation flag to true
-                if user.email_confirmation_token == confirmation_token:
-                    user.set_email_confimation_flag()
-                    login(request, user)
-                    context = {
-                        "username": user.get_username(),
-                        "text": "Your email has been verified."
-                    }
-                    return render(request, 'success.html', context=context)
-                else:
-                    print("WRONG EMAIL TOKEN")
-                    return render(request, 'no_success.html', context={})
-            else:
-                return render(request, 'no_success.html', context={})
+                return render(request, "no_success.html")
 
     else:
         form = ConfirmationForm()
@@ -133,20 +113,37 @@ def logout_view(request):
     return render(request, 'logout.html')
 
 
+def get_ParetosUser_by_username_or_mail(username_or_mail):
+    # TODO: make this better
+
+    try:
+        return ParetosUser.objects.get(username=username_or_mail)
+    except:
+        pass
+
+    try:
+        return ParetosUser.objects.get(email=username_or_mail)
+    except:
+        pass
+
+    return None
+
+
 def request_reset_password(request):
     if request.method == 'POST':
         form = RequestResetPasswordForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            try:
-                user = ParetosUser.objects.get(username=username)
+            # TODO: validate form first before sending email
+            username_or_mail = form.cleaned_data["username_or_mail"]
+            user = get_ParetosUser_by_username_or_mail(username_or_mail)
+            if user is not None:
                 user.send_reset_mail(request)
-                return render(request, "success.html", context={"text": "We just sent you an email to reset your password"})
-            except:
-                text = "No account was found with this username\n"
-                text += "Please register a new account."
-                request.session["register_text"] = text
-                return redirect("register_user")
+                return render(request, "success.html", context={"text": "Wir haben dir eine Mail gesendet..."})
+
+            text = "No account was found with this username\n"
+            text += "Please register a new account."
+            request.session["register_text"] = text
+            return redirect("register_user")
     else:
         form = RequestResetPasswordForm()
         return render(request, 'request_reset_password.html', context={"form": form})

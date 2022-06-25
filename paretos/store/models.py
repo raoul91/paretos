@@ -22,15 +22,14 @@ class ParetosUser(User):
         return self.username
 
     def send_confirmation_email(self, request):
-        print("SENDING CONFIRMATION EMAIL TO {0}".format(self.email))
-        message = "hello"
+        message = "Hallo {0}\n\n".format(self.username)
         confirmation_url = request.build_absolute_uri("confimation")
-        message += "Confirm your email via this link: {0}\n".format(
+        message += "Aktiviere deine E-Mail hier: {0}\n".format(
             confirmation_url)
-        message += "Here is your confirmation token: {0}".format(
+        message += "Dein Aktivierungscode: {0}".format(
             self.email_confirmation_token)
         self.email_user(
-            subject="TEST Confirm Mail",
+            subject="Paretos.ch: Bestätige deine E-Mail Adresse",
             message=message,
             from_email=EMAIL_HOST_USER,
         )
@@ -39,13 +38,13 @@ class ParetosUser(User):
         # TODO: this is still very insecure
         # Need to generate a token and put it into uri
         print("SENDING RESET EMAIL TO {0}".format(self.email))
-        message = "hello"
+        message = "Hallo {0}\n\n".format(self.username)
         reset_url = request.build_absolute_uri(
             "/reset/{user}/".format(user=self.username))
-        message += "Reset your email via this link: {0}\n".format(
+        message += "Ändere dein Password hier: {0}\n".format(
             reset_url)
         self.email_user(
-            subject="TEST Reset Mail",
+            subject="Paretos.ch: Passwort Änderung",
             message=message,
             from_email=EMAIL_HOST_USER,
         )

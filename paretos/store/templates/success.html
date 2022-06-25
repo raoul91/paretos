@@ -1,7 +1,9 @@
 {% extends 'base.html' %} {% load static %}
 
 {% block content %}
-<h2>Hallo, {{username}}. Schön, dass du bei paretos bist.</h2>
+Hallo, {{username}}. Schön, dass du bei paretos bist.
+Wir dir eine Mail an {{email}} mit einem Verifizierungslink gesendet.
+<br>
 {% if text %}
 {{text}}
 {% endif %}

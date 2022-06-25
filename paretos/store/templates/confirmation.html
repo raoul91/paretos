@@ -3,10 +3,6 @@
 {% block title %}Email confirmation{% endblock %}
 
 {% block content %}
-<h2>Bestätige deine E-Mail Adresse</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Bestätige</button>
-</form>
+Bestätige deine E-Mail Adresse hier:
+{% include 'form_template.html' %}
 {% endblock %}
