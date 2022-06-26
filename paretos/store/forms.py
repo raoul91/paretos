@@ -51,7 +51,15 @@ class LoginForm(forms.Form):
         name = self.cleaned_data['name']
         password = self.cleaned_data['password']
 
+        user = authenticate(username=name, password=password)
+        if user is not None:
+            if not user.check_password(password):
+                self._errors["password"] = "Falsches Passwort"
+        else:
+            self._errors["password"] = "Benutzername oder Passwort falsch."
+
         # TODO: make this better
+        """
         u = authenticate(username=name, password=password)
         if u is not None:
             print("USER IS NOT NONE")
@@ -66,6 +74,7 @@ class LoginForm(forms.Form):
         except:
             user = None
             self._errors["name"] = "Benutzername existiert nicht"
+        """
 
 
 class EmailActivationForm(forms.Form):
@@ -87,6 +96,8 @@ class EmailActivationForm(forms.Form):
         # TODO: use authenticate method at this point
         u = authenticate(username=username, password=password)
         if u is not None:
+            print("CHECKING PASSWORD")
+            print(u.check_password(password))
             print("AUTHENTICATED")
         else:
             print("NOT AUTH")

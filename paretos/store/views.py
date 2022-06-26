@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from .models import ParetosUser
@@ -25,7 +26,9 @@ def login_user(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return render(request, 'success.html', context={"username": user.get_username()})
+                text = "Hallo {0}. Du bist jetzt angemeldet".format(
+                    user.get_username())
+                return render(request, 'success.html', context={"text": text})
             else:
                 return render(request, 'no_success.html', context={})
         else:
@@ -35,6 +38,12 @@ def login_user(request):
     else:
         form = LoginForm()
         return render(request, 'login.html', context={"form": form})
+
+
+def generate_token():
+    # TODO: improve here
+    r = [str(x) for x in random.sample(range(0, 9), 6)]
+    return int("".join(r))
 
 
 def register_user(request):
@@ -55,42 +64,30 @@ def register_user(request):
         username = form.cleaned_data["username"]
         email = form.cleaned_data["email"]
         password = form.cleaned_data["password"]
+        token = generate_token()
         user = ParetosUser(
             username=username,
             email=email,
             password=password,
-            email_confirmation_token=1234,
+            email_confirmation_token=token,
         )
         # TODO: need to check how to do this properly
         user.set_password(password)
         user.save()
-        user.send_confirmation_email(request)
+        user.send_activation_email(request)
         login(request, user)
-        context = {"username": username, "email": email}
-        return render(request, 'success.html', context=context)
+        text = "Hallo {0}. Wir haben dir eine E-Mail gesendet.".format(
+            username)
+        return render(request, 'success.html', context={"text": text})
 
 
-def email_activation(request):
-    # TODO: need to do generate token or something like that
-    if request.method != "POST":
-        form = EmailActivationForm()
-        return render(request, 'confirmation.html', context={"form": form})
-    else:
-        form = EmailActivationForm(request.POST)
-        if not(form.is_valid()):
-            return render(request, "confirmation.html", context={"form": form})
-
-        if form.is_valid():
-            # TODO: put this in the form itself
-            username = form.cleaned_data["username"]
-            try:
-                user = ParetosUser.objects.get(username=username)
-                user.set_email_confirmation_flag()
-                login(request, user)
-                return render(request, "success.html", context={})
-            except:
-                user = None
-                return render(request, "no_success.html")
+def email_activation(request, username, token):
+    try:
+        user = ParetosUser.objects.get(username=username)
+        user.activate_mail(token)
+        return render(request, "success.html", context={"text": "Danke. Wir haben deine E-mail aktiviert."})
+    except:
+        return render(request, "success.html", context={"text": "There was an error"})
 
 
 def logout_user(request):
@@ -108,14 +105,10 @@ def get_ParetosUser_by_username_or_mail(username_or_mail):
     try:
         return ParetosUser.objects.get(username=username_or_mail)
     except:
-        pass
-
-    try:
-        return ParetosUser.objects.get(email=username_or_mail)
-    except:
-        pass
-
-    return None
+        try:
+            return ParetosUser.objects.get(email=username_or_mail)
+        except:
+            return None
 
 
 def request_reset_password(request):
@@ -162,4 +155,5 @@ def reset_password(request, username):
 def test(request):
     username = request.user.get_username()
     context = {"username": username}
+
     return render(request, 'test.html', context=context)

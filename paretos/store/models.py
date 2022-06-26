@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
+from urllib.parse import urljoin
+import random
+
 global EMAIL_HOST_USER
 EMAIL_HOST_USER = settings.EMAIL_HOST_USER
 
@@ -21,13 +24,15 @@ class ParetosUser(User):
     def __str__(self):
         return self.username
 
-    def send_confirmation_email(self, request):
+    def get_activation_url(self, request):
+        abspath = request.build_absolute_uri("activate_email")
+        return "/".join([abspath, self.username, str(self.email_confirmation_token)])
+
+    def send_activation_email(self, request):
         message = "Hallo {0}\n\n".format(self.username)
-        confirmation_url = request.build_absolute_uri("confirmation")
+        activation_url = self.get_activation_url(request)
         message += "Aktiviere deine E-Mail hier: {0}\n".format(
-            confirmation_url)
-        message += "Dein Aktivierungscode: {0}".format(
-            self.email_confirmation_token)
+            activation_url)
         self.email_user(
             subject="Paretos.ch: Bestätige deine E-Mail Adresse",
             message=message,
@@ -41,7 +46,7 @@ class ParetosUser(User):
         message = "Hallo {0}\n\n".format(self.username)
         reset_url = request.build_absolute_uri(
             "/reset/{user}/".format(user=self.username))
-        message += "Ändere dein Password hier: {0}\n".format(
+        message += "Ändere dein Passwort hier: {0}\n".format(
             reset_url)
         self.email_user(
             subject="Paretos.ch: Passwort Änderung",
@@ -49,6 +54,7 @@ class ParetosUser(User):
             from_email=EMAIL_HOST_USER,
         )
 
-    def set_email_confirmation_flag(self):
-        self.email_confirmed = True
-        self.save()
+    def activate_mail(self, token):
+        if token == str(self.email_confirmation_token):
+            self.email_confirmed = True
+            self.save()

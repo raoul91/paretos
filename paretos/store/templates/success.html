@@ -1,12 +1,13 @@
 {% extends 'base.html' %} {% load static %}
 
 {% block content %}
-Hallo, {{username}}. Schön, dass du bei paretos bist.
-Wir dir eine Mail an {{email}} mit einem Verifizierungslink gesendet.
-<br>
 {% if text %}
 {{text}}
 {% endif %}
-<a href="{% url 'logout' %}">Abmelden</a>
+<br>
+<a href="{% url 'login_user' %}">Anmelden</a>
+<br>
+<a href="{% url 'logout_user' %}">Abmelden</a>
+<br>
 <a href="{% url 'test' %}">Test</a>
 {% endblock %}
