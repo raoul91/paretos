@@ -25,8 +25,11 @@ class ParetosUser(User):
         return self.username
 
     def get_activation_url(self, request):
-        abspath = request.build_absolute_uri("activate_email")
-        return "/".join([abspath, self.username, str(self.email_confirmation_token)])
+        uri = "activate_email/{username}/{token}/".format(
+            username=self.username,
+            token=str(self.email_confirmation_token)
+        )
+        return request.build_absolute_uri(uri)
 
     def send_activation_email(self, request):
         message = "Hallo {0}\n\n".format(self.username)
@@ -55,6 +58,6 @@ class ParetosUser(User):
         )
 
     def activate_mail(self, token):
-        if token == str(self.email_confirmation_token):
+        if not(self.email_confirmed) and token == str(self.email_confirmation_token):
             self.email_confirmed = True
             self.save()

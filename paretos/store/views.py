@@ -155,5 +155,4 @@ def reset_password(request, username):
 def test(request):
     username = request.user.get_username()
     context = {"username": username}
-
     return render(request, 'test.html', context=context)
