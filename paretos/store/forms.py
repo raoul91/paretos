@@ -15,6 +15,9 @@ PASSWORD_WIDGET = forms.PasswordInput(
 
 
 class RegisterForm(forms.Form):
+
+    button_label = "Registrieren"
+
     username = forms.CharField(
         widget=WIDGET, required=True, label="Benutzername")
     email = forms.EmailField(widget=WIDGET, required=True, label="E-Mail")
@@ -45,6 +48,9 @@ class RegisterForm(forms.Form):
 
 
 class LoginForm(forms.Form):
+
+    button_label = "Anmelden"
+
     name = forms.CharField(widget=WIDGET, required=True, label="Benutzername")
     password = forms.CharField(
         widget=PASSWORD_WIDGET, required=True, label="Passwort")
@@ -63,6 +69,8 @@ class LoginForm(forms.Form):
 
 
 class RequestResetPasswordForm(forms.Form):
+    button_label = "Link senden"
+
     username_or_mail = forms.CharField(
         widget=WIDGET, required=True, label="Benutzername oder E-Mail")
 
@@ -70,6 +78,8 @@ class RequestResetPasswordForm(forms.Form):
 
 
 class ResetPasswordForm(forms.Form):
+    button_label = "Passwort ändern"
+
     new_password = forms.CharField(
         widget=PASSWORD_WIDGET, required=True, label="Neues Passwort")
     new_password_confirm = forms.CharField(
