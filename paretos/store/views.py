@@ -119,11 +119,14 @@ def request_reset_password(request):
             username_or_mail = form.cleaned_data["username_or_mail"]
             user = get_ParetosUser_by_username_or_mail(username_or_mail)
             if user is not None:
+                token = generate_token()
+                user.set_password_reset_token(token)
                 user.send_reset_mail(request)
-                return render(request, "success.html", context={"text": "Wir haben dir eine Mail gesendet..."})
+                text = "Wir haben dir eine Mail gesendet..."
+                return render(request, "success.html", context={"text": text})
 
-            text = "No account was found with this username\n"
-            text += "Please register a new account."
+            text = "Es gibt kein Account mit diesem Benutzername\n"
+            text += "Erstelle einen neuen Account."
             request.session["register_text"] = text
             return redirect("register_user")
     else:
@@ -131,11 +134,14 @@ def request_reset_password(request):
         return render(request, 'request_reset_password.html', context={"form": form})
 
 
-def reset_password(request, username):
-    # get user first, then reset password, then save
+def reset_password(request, username, token):
     try:
         user = ParetosUser.objects.get(username=username)
     except:
+        return render(request, "no_success.html")
+
+    if str(user.password_reset_token) != token:
+        # wrong token
         return render(request, "no_success.html")
 
     if request.method == 'POST':

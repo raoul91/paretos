@@ -13,6 +13,7 @@ class ParetosUser(User):
 
     email_confirmed = models.BooleanField(default=False)
     email_confirmation_token = models.IntegerField()
+    password_reset_token = models.IntegerField(default=0)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
@@ -42,13 +43,22 @@ class ParetosUser(User):
             from_email=EMAIL_HOST_USER,
         )
 
+    def get_reset_url(self, request):
+        uri = "reset/{username}/{token}/".format(
+            username=self.username,
+            token=str(self.password_reset_token)
+        )
+        return request.build_absolute_uri(uri)
+
+    def set_password_reset_token(self, token):
+        self.password_reset_token = token
+        self.save()
+
     def send_reset_mail(self, request):
         # TODO: this is still very insecure
         # Need to generate a token and put it into uri
-        print("SENDING RESET EMAIL TO {0}".format(self.email))
         message = "Hallo {0}\n\n".format(self.username)
-        reset_url = request.build_absolute_uri(
-            "/reset/{user}/".format(user=self.username))
+        reset_url = self.get_reset_url(request)
         message += "Ändere dein Passwort hier: {0}\n".format(
             reset_url)
         self.email_user(
