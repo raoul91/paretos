@@ -2,9 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from urllib.parse import urljoin
-import random
-
 global EMAIL_HOST_USER
 EMAIL_HOST_USER = settings.EMAIL_HOST_USER
 
@@ -55,8 +52,6 @@ class ParetosUser(User):
         self.save()
 
     def send_reset_mail(self, request):
-        # TODO: this is still very insecure
-        # Need to generate a token and put it into uri
         message = "Hallo {0}\n\n".format(self.username)
         reset_url = self.get_reset_url(request)
         message += "Ändere dein Passwort hier: {0}\n".format(

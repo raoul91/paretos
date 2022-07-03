@@ -91,3 +91,5 @@ class ResetPasswordForm(forms.Form):
         new_password_confirm = self.cleaned_data["new_password_confirm"]
         if new_password != new_password_confirm:
             self._errors["new_password_confirm"] = "Passwörter stimmen nicht überein"
+
+        # TODO: implement better logic for password
