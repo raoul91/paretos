@@ -152,6 +152,8 @@ def reset_password(request, username, token):
             user.save()
             request.session["text"] = "You can login with your new password now"
             return redirect("login_user")
+        else:
+            return render(request, 'reset_password.html', context={"form": form})
 
     else:
         form = ResetPasswordForm()
