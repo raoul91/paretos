@@ -21,7 +21,7 @@ def login_user(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data["name"]
+            username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -150,7 +150,7 @@ def reset_password(request, username, token):
             new_password = form.cleaned_data["new_password"]
             user.set_password(new_password)
             user.save()
-            request.session["text"] = "You can login with your new password now"
+            request.session["text"] = "Melde dich jetzt mit deinem neuen Passwort an."
             return redirect("login_user")
         else:
             return render(request, 'reset_password.html', context={"form": form})

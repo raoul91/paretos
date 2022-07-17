@@ -1,30 +1,30 @@
-from re import A
 from django import forms
 from .models import ParetosUser
-from django.contrib.auth import authenticate, login, logout
+#from django.contrib.auth import authenticate, login, logout
 
-# TODO: try to put this in html
-WIDGET = forms.TextInput(
-    attrs={'class': 'form-control'}
-)
 
-PASSWORD_WIDGET = forms.PasswordInput(
-    attrs={'class': 'form-control', 'type': 'password',
-           'name': 'password', 'placeholder': 'Passwort'}
-)
+# TODO: put this somewhere else
+def is_already_existent(username):
+    try:
+        ParetosUser.objects.get(username=username)
+        return True
+    except:
+        return False
 
 
 class RegisterForm(forms.Form):
 
     button_label = "Registrieren"
 
-    username = forms.CharField(
-        widget=WIDGET, required=True, label="Benutzername")
-    email = forms.EmailField(widget=WIDGET, required=True, label="E-Mail")
+    username = forms.CharField(required=True, label="Benutzername")
+    email = forms.EmailField(required=True, label="E-Mail")
     email_confirmation = forms.EmailField(
-        widget=WIDGET, required=True, label="E-Mail bestätigen")
+        required=True,
+        label="E-Mail bestätigen")
     password = forms.CharField(
-        widget=PASSWORD_WIDGET, required=True, label="Passwort")
+        widget=forms.PasswordInput(),
+        required=True,
+        label="Passwort")
 
     def clean(self):
         super(RegisterForm, self).clean()
@@ -35,44 +35,46 @@ class RegisterForm(forms.Form):
         password = self.cleaned_data["password"]
 
         if email != email_confirmation:
-            self._errors['email_confirmation'] = 'Email Adressen stimmen nicht überein'
+            raise forms.ValidationError('Email Adressen stimmen nicht überein')
         if len(password) < 4:
-            self._errors["password"] = 'Passwort ist zu kurz'
-        try:
-            ParetosUser.objects.get(username=username)
-            self._errors['username'] = "Benutzer existiert schon. Melde dich an."
-        except:
-            pass
+            raise forms.ValidationError('Passwort ist zu kurz')
+
+        if is_already_existent(username):
+            raise forms.ValidationError(
+                "Benutzer existiert schon. Melde dich an.")
 
         # TODO: implement better logic for password
+        return self.cleaned_data
 
 
 class LoginForm(forms.Form):
 
     button_label = "Anmelden"
 
-    name = forms.CharField(widget=WIDGET, required=True, label="Benutzername")
+    username = forms.CharField(required=True, label="Benutzername")
     password = forms.CharField(
-        widget=PASSWORD_WIDGET, required=True, label="Passwort")
+        required=True, label="Passwort", widget=forms.PasswordInput())
 
     def clean(self):
         super(LoginForm, self).clean()
-        name = self.cleaned_data['name']
+        username = self.cleaned_data['username']
         password = self.cleaned_data['password']
 
-        user = authenticate(username=name, password=password)
-        if user is not None:
-            if not user.check_password(password):
-                self._errors["password"] = "Falsches Passwort"
+        if not(is_already_existent(username)):
+            raise forms.ValidationError("Benutzername existiert nicht.")
         else:
-            self._errors["password"] = "Benutzername oder Passwort falsch."
+            user = ParetosUser.objects.get(username=username)
+            if not(user.check_password(password)):
+                raise forms.ValidationError("Falsches Passwort.")
+
+        return self.cleaned_data
 
 
 class RequestResetPasswordForm(forms.Form):
     button_label = "Link senden"
 
     username_or_mail = forms.CharField(
-        widget=WIDGET, required=True, label="Benutzername oder E-Mail")
+        required=True, label="Benutzername oder E-Mail")
 
     # TODO: Check if user exists first
 
@@ -81,15 +83,16 @@ class ResetPasswordForm(forms.Form):
     button_label = "Passwort ändern"
 
     new_password = forms.CharField(
-        widget=PASSWORD_WIDGET, required=True, label="Neues Passwort")
+        widget=forms.PasswordInput(), required=True, label="Neues Passwort")
     new_password_confirm = forms.CharField(
-        widget=PASSWORD_WIDGET, required=True, label="Neues Passwort bestätigen")
+        widget=forms.PasswordInput(), required=True, label="Neues Passwort bestätigen")
 
     def clean(self):
         super(ResetPasswordForm, self).clean()
         new_password = self.cleaned_data["new_password"]
         new_password_confirm = self.cleaned_data["new_password_confirm"]
         if new_password != new_password_confirm:
-            self._errors["new_password_confirm"] = "Passwörter stimmen nicht überein"
+            raise forms.ValidationError("Passwörter stimmen nicht überein")
 
         # TODO: implement better logic for password
+        return self.cleaned_data
